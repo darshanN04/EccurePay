@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from 'react';
 
 function CreditCardForm() {
@@ -90,6 +89,8 @@ function CreditCardForm() {
         <div>
           <h3>Verification Result</h3>
           <p>{verification}</p>
+          
+          
         </div>
       )}
 
