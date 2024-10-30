@@ -1,0 +1,40 @@
+.landing{
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #11e8ef, #6b9005);    
+
+}
+.main_heading{
+    font-size: 80px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: white;
+    }
+.para{
+    font-size: 20px;
+    color: white;
+
+}
+.buttons_landing{
+    margin-top: 100px;
+}
+.buttons_landing{
+    display: flex;
+    gap: 40px;
+}
+.login_button, .signup_button{
+    width: 160px;
+    height: 50px;
+    font-size: 20px;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.767);
+    box-shadow: 5px 5px 10px 0px rgba(255, 255, 255, 0.273);
+    cursor: pointer;
+    border-color: white;
+}
+.login_button:active, .signup_button:active{
+    box-shadow: inset 0.5px 0.5px 10px 0px rgba(255, 255, 255, 0.227);
+    transform: scale(0.96);
+}
