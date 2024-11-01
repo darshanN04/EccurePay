@@ -4,12 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../UserContext';
 
 const Login = () => {
-    const { setUserId } = useContext(UserContext);
+    const { setUserId } = useContext(UserContext); // Use context to set userId
     const navigate = useNavigate();
     const [loginname, setLoginname] = useState('');
     const [loginpassword, setLoginpassword] = useState('');
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     const validateForm = () => {
         if (!loginname || !loginpassword) {
@@ -21,33 +20,33 @@ const Login = () => {
     };
 
     const handleLogin = async () => {
-      if (!validateForm()) 
-          return;
-      try {
-          const response = await fetch('http://localhost:5000/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  username: loginname,
-                  password: loginpassword
-              })
-          });
-  
-          const data = await response.json();
-  
-          if (data.status === 'success') {
-              // Handle successful login (e.g., navigate to the card page)
-              console.log("Login successful");
-              navigate('/CardPage');
-          } else {
-              alert(data.message); // Show the error message
-          }
-      } catch (err) {
-          console.error("Error:", err);
-          alert("An error occurred. Please try again.");
-      }
-  };
-  
+        if (!validateForm())
+            return;
+
+        try {
+            const response = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: loginname,
+                    password: loginpassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                console.log("Login successful");
+                setUserId(data.userId); // Store userId in context
+                navigate('/CardPage');
+            } else {
+                alert(data.message); // Show the error message
+            }
+        } catch (err) {
+            console.error("Error:", err);
+            alert("An error occurred. Please try again.");
+        }
+    };
 
     return (
         <div className='body'>
@@ -55,7 +54,6 @@ const Login = () => {
                 <div className='login_label'>Login</div>
                 <hr className='login_label_sep' />
                 {error && <div className='error'>{error}</div>}
-                {success && <div className='success'>{success}</div>}
                 <div className='inputs'>
                     <input
                         type='text'

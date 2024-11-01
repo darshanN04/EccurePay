@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { UserContext } from '../UserContext';
 
 function CreditCardForm() {
+  const { userId } = useContext(UserContext);
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [encryptedData, setEncryptedData] = useState(null);
-  const [decryptedData, setDecryptedData] = useState(null);
-  const [cardId, setCardId] = useState('');
   const [error, setError] = useState('');
+  const [storedCards, setStoredCards] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Step 1: Encrypt card details
       const encryptResponse = await fetch("http://localhost:5000/encrypt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -21,22 +21,23 @@ function CreditCardForm() {
 
       const encryptData = await encryptResponse.json();
       if (encryptResponse.ok) {
-        // Step 2: Store encrypted data in MongoDB
         const storeResponse = await fetch("http://localhost:5000/store-encrypted", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            userId,
             encrypted_card_number: encryptData.encrypted_card_number,
             encrypted_expiry_date: encryptData.encrypted_expiry_date,
             encrypted_cvv: encryptData.encrypted_cvv,
           }),
         });
 
-        const storeData = await storeResponse.json();
         if (storeResponse.ok) {
-          setEncryptedData(encryptData); // Set encrypted data if stored successfully
+          setEncryptedData(encryptData);
+          fetchStoredCards();  // Fetch cards after a successful store
         } else {
-          setError("Failed to store encrypted data");
+          const storeData = await storeResponse.json();
+          setError(storeData.error || "Failed to store encrypted data");
         }
       } else {
         setError(encryptData.error);
@@ -47,40 +48,29 @@ function CreditCardForm() {
     }
   };
 
-  const handleRetrieve = async () => {
-    if (!cardId) return;
-
+  const fetchStoredCards = async () => {
     try {
       const retrieveResponse = await fetch("http://localhost:5000/retrieve-encrypted", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardId }),
+        body: JSON.stringify({ userId }),
       });
 
-      const retrieveData = await retrieveResponse.json();
-
+      const cardsData = await retrieveResponse.json();
       if (retrieveResponse.ok) {
-        // Decrypt the retrieved data
-        const decryptResponse = await fetch("http://localhost:5000/decrypt", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            encryptedCardNumber: retrieveData.encrypted_card_number.ciphertext,
-            encryptedExpiryDate: retrieveData.encrypted_expiry_date.ciphertext,
-            encryptedCvv: retrieveData.encrypted_cvv.ciphertext,
-          }),
-        });
-
-        const decryptData = await decryptResponse.json();
-        setDecryptedData(decryptData);
+        setStoredCards(cardsData);
       } else {
-        setError(retrieveData.error);
+        setError(cardsData.error || "Failed to retrieve cards");
       }
     } catch (error) {
-      console.error("Error:", error);
-      setError("An error occurred during the retrieval process.");
+      console.error("Error fetching stored cards:", error);
+      setError("An error occurred while retrieving cards.");
     }
   };
+
+  useEffect(() => {
+    fetchStoredCards();
+  }, [userId]);
 
   return (
     <div style={{ maxWidth: '400px', margin: 'auto' }}>
@@ -101,17 +91,6 @@ function CreditCardForm() {
         <button type="submit">Submit</button>
       </form>
 
-      <div>
-        <h3>Retrieve Stored Card Data</h3>
-        <input
-          type="text"
-          placeholder="Enter Card ID to Retrieve"
-          value={cardId}
-          onChange={(e) => setCardId(e.target.value)}
-        />
-        <button onClick={handleRetrieve}>Retrieve Data</button>
-      </div>
-
       {encryptedData && (
         <div>
           <h3>Encrypted Data</h3>
@@ -121,16 +100,18 @@ function CreditCardForm() {
         </div>
       )}
 
-      {decryptedData && (
-        <div>
-          <h3>Decrypted Data</h3>
-          <p>Card Number: {decryptedData.decrypted_card_number}</p>
-          <p>Expiry Date: {decryptedData.decrypted_expiry_date}</p>
-          <p>CVV: {decryptedData.decrypted_cvv}</p>
-        </div>
-      )}
+      {error && <div className='error'>{error}</div>}
 
-      {error && <div className='error'>{error}</div>} {/* Display error message */}
+      <h3>Stored Cards</h3>
+      <ul>
+        {storedCards.map((card, index) => (
+          <li key={index}>
+            <p>Card Number: {card.encrypted_card_number.ciphertext}</p>
+            <p>Expiry Date: {card.encrypted_expiry_date.ciphertext}</p>
+            <p>CVV: {card.encrypted_cvv.ciphertext}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

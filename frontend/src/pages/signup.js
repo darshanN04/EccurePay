@@ -56,7 +56,7 @@ const Signup = () => {
                         password
                     })
                 });
-    
+                console.log(username);
                 const data = await response.json();
     
                 if (response.ok) { // Check for successful response

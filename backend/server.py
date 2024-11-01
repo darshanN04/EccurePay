@@ -10,6 +10,9 @@ import base64
 import hashlib
 import os
 from werkzeug.security import generate_password_hash
+from bson import ObjectId
+from flask_pymongo import PyMongo
+
 
 
 app = Flask(__name__)
@@ -21,6 +24,8 @@ mongo = PyMongo(app)
 
 # Define the users collection
 users_collection = mongo.db.users
+
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -49,15 +54,18 @@ def signup():
         'phone': phone,
         'email': email,
         'age': age,
-        'password': hashed_password
+        'password': hashed_password,
+        'cards': []  # Initialize an empty list for storing card information
     }
 
     try:
         users_collection.insert_one(user_data)
         return jsonify({'status': 'success', 'message': 'User created successfully.'}), 201
     except Exception as e:
-        print(f"Error inserting user: {e}")  # Log the error for debugging
+        print(f"Error inserting user: {e}")
         return jsonify({'status': 'error', 'message': 'Signup failed. Please try again.'}), 500
+
+
 
 
 #Login
@@ -73,7 +81,7 @@ def login():
     user = users_collection.find_one({'username': username})
 
     if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
-        return jsonify({'status': 'success', 'message': 'Login successful.'}), 200
+        return jsonify({'status': 'success', 'userId': str(user['_id']), 'message': 'Login successful.'}), 200
     else:
         return jsonify({'status': 'error', 'message': 'Invalid username or password.'}), 401
     
@@ -130,23 +138,51 @@ def encrypt():
 @app.route('/store-encrypted', methods=['POST'])
 def store_encrypted():
     data = request.get_json()
-    mongo.db.cards.insert_one(data)
-    return jsonify({"status": "Stored successfully"}), 201
+    user_id = data.get("userId")
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    encrypted_data = {
+        "encrypted_card_number": data['encrypted_card_number'],
+        "encrypted_expiry_date": data['encrypted_expiry_date'],
+        "encrypted_cvv": data['encrypted_cvv']
+    }
+
+    try:
+        # Convert user_id to ObjectId and update the user document
+        users_collection.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$push': {'cards': encrypted_data}}  # Append encrypted data to the user's 'cards' list
+        )
+        return jsonify({"status": "Stored successfully"}), 201
+    except Exception as e:
+        print(f"Error storing card data: {e}")
+        return jsonify({"error": "Failed to store card data"}), 500
+    
+
 
 @app.route('/retrieve-encrypted', methods=['POST'])
 def retrieve_encrypted():
     data = request.get_json()
-    card_id = data.get("cardId")
+    user_id = data.get("userId")
 
-    card_data = mongo.db.cards.find_one({"_id": card_id})
-    if not card_data:
-        return jsonify({"error": "Card not found"}), 404
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
 
-    return jsonify({
-        "encrypted_card_number": card_data["encrypted_card_number"],
-        "encrypted_expiry_date": card_data["encrypted_expiry_date"],
-        "encrypted_cvv": card_data["encrypted_cvv"]
-    })
+    try:
+        # Convert user_id to ObjectId and fetch the user's card data
+        user_data = users_collection.find_one({"_id": ObjectId(user_id)}, {"cards": 1})
+
+        if user_data and "cards" in user_data:
+            return jsonify(user_data["cards"]), 200
+        else:
+            return jsonify({"error": "No cards found for this user"}), 404
+    except Exception as e:
+        print(f"Error retrieving cards: {e}")
+        return jsonify({"error": "Failed to retrieve cards"}), 500
+
+
 
 @app.route('/decrypt', methods=['POST'])
 def decrypt():
@@ -189,4 +225,4 @@ def decrypt():
 
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=5000, debug=True)
