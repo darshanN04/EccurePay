@@ -12,6 +12,7 @@ import os
 from werkzeug.security import generate_password_hash
 from bson import ObjectId
 from flask_pymongo import PyMongo
+from cryptography.hazmat.primitives import serialization
 
 
 
@@ -89,8 +90,18 @@ def login():
 
 
     
+key_file = "ecc_private_key.pem"
 
-encryption_private_key = ECC.generate(curve='P-256')
+if not os.path.exists(key_file):
+    # Generate new key if it doesn't exist
+    encryption_private_key = ECC.generate(curve='P-256')
+    with open(key_file, "wb") as f:
+        f.write(encryption_private_key.export_key(format='PEM').encode())
+else:
+    # Load existing key
+    with open(key_file, "rb") as f:
+        encryption_private_key = ECC.import_key(f.read())
+
 encryption_public_key = encryption_private_key.public_key()
 
 # Encryption and decryption helper functions
@@ -98,6 +109,7 @@ def encrypt_message(public_key, message):
     shared_secret = public_key.pointQ * encryption_private_key.d
     shared_secret_bytes = int(shared_secret.x).to_bytes(32, byteorder='big')
     aes_key = SHA256.new(shared_secret_bytes).digest()
+
     cipher = AES.new(aes_key, AES.MODE_GCM)
     ciphertext, tag = cipher.encrypt_and_digest(message.encode('utf-8'))
     return {
@@ -110,13 +122,14 @@ def decrypt_message(private_key, encrypted_data):
     ciphertext = base64.b64decode(encrypted_data['ciphertext'])
     nonce = base64.b64decode(encrypted_data['nonce'])
     tag = base64.b64decode(encrypted_data['tag'])
-    shared_secret = encrypted_data['shared_public_key'].pointQ * private_key.d
+    shared_secret = encryption_public_key.pointQ * private_key.d
     shared_secret_bytes = int(shared_secret.x).to_bytes(32, byteorder='big')
     aes_key = SHA256.new(shared_secret_bytes).digest()
     
     cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
     decrypted_message = cipher.decrypt_and_verify(ciphertext, tag)
     return decrypted_message.decode('utf-8')
+
 
 @app.route('/encrypt', methods=['POST'])
 def encrypt():
@@ -134,6 +147,8 @@ def encrypt():
         "encrypted_expiry_date": encrypted_expiry_date,
         "encrypted_cvv": encrypted_cvv
     })
+
+
 
 @app.route('/store-encrypted', methods=['POST'])
 def store_encrypted():
@@ -175,6 +190,7 @@ def retrieve_encrypted():
         user_data = users_collection.find_one({"_id": ObjectId(user_id)}, {"cards": 1})
 
         if user_data and "cards" in user_data:
+            # Return the stored encrypted data directly
             return jsonify(user_data["cards"]), 200
         else:
             return jsonify({"error": "No cards found for this user"}), 404
@@ -191,35 +207,47 @@ def decrypt():
     encrypted_expiry_date = data['encryptedExpiryDate']
     encrypted_cvv = data['encryptedCvv']
 
-    # Retrieve the public key of the card (this is a placeholder)
-    public_key = encryption_public_key
-
-    decrypted_card_number = decrypt_message(encryption_private_key, {
-        "ciphertext": encrypted_card_number,
-        "shared_public_key": public_key,
-        "nonce": "",  # Provide nonce if needed
-        "tag": ""     # Provide tag if needed
-    })
-
-    decrypted_expiry_date = decrypt_message(encryption_private_key, {
-        "ciphertext": encrypted_expiry_date,
-        "shared_public_key": public_key,
-        "nonce": "",  # Provide nonce if needed
-        "tag": ""     # Provide tag if needed
-    })
-
-    decrypted_cvv = decrypt_message(encryption_private_key, {
-        "ciphertext": encrypted_cvv,
-        "shared_public_key": public_key,
-        "nonce": "",  # Provide nonce if needed
-        "tag": ""     # Provide tag if needed
-    })
+    decrypted_card_number = decrypt_message(encryption_private_key, encrypted_card_number)
+    decrypted_expiry_date = decrypt_message(encryption_private_key, encrypted_expiry_date)
+    decrypted_cvv = decrypt_message(encryption_private_key, encrypted_cvv)
 
     return jsonify({
         "decrypted_card_number": decrypted_card_number,
         "decrypted_expiry_date": decrypted_expiry_date,
         "decrypted_cvv": decrypted_cvv
     })
+
+
+@app.route('/retrieve-decrypted', methods=['POST'])
+def retrieve_decrypted():
+    data = request.get_json()
+    user_id = data.get("userId")
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    try:
+        # Fetch the user's encrypted card data
+        user_data = users_collection.find_one({"_id": ObjectId(user_id)}, {"cards": 1})
+
+        if user_data and "cards" in user_data:
+            decrypted_cards = []
+            for card in user_data["cards"]:
+                decrypted_card = {
+                    "card_number": decrypt_message(encryption_private_key, card["encrypted_card_number"]),
+                    "expiry_date": decrypt_message(encryption_private_key, card["encrypted_expiry_date"]),
+                    "cvv": decrypt_message(encryption_private_key, card["encrypted_cvv"])
+                }
+                decrypted_cards.append(decrypted_card)
+
+            return jsonify(decrypted_cards), 200
+        else:
+            return jsonify({"error": "No cards found for this user"}), 404
+    except Exception as e:
+        print(f"Error retrieving or decrypting cards: {e}")
+        return jsonify({"error": "Failed to retrieve or decrypt cards"}), 500
+
+
 
 
 

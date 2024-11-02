@@ -9,9 +9,21 @@ function CreditCardForm() {
   const [encryptedData, setEncryptedData] = useState(null);
   const [error, setError] = useState('');
   const [storedCards, setStoredCards] = useState([]);
+  const [decryptedCards, setDecryptedCards] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if card number already exists in decrypted cards
+    const cardExists = decryptedCards.some(
+      (card) => card.decrypted_card_number === cardNumber
+    );
+
+    if (cardExists) {
+      setError("This card number already exists in your stored cards.");
+      return;
+    }
+
     try {
       const encryptResponse = await fetch("http://localhost:5000/encrypt", {
         method: "POST",
@@ -34,7 +46,8 @@ function CreditCardForm() {
 
         if (storeResponse.ok) {
           setEncryptedData(encryptData);
-          fetchStoredCards();  // Fetch cards after a successful store
+          setError("");
+          fetchStoredCards(); // Refresh the list of stored cards
         } else {
           const storeData = await storeResponse.json();
           setError(storeData.error || "Failed to store encrypted data");
@@ -68,9 +81,46 @@ function CreditCardForm() {
     }
   };
 
+  const decryptStoredCards = async () => {
+    try {
+      const decryptedData = await Promise.all(
+        storedCards.map(async (card) => {
+          const decryptResponse = await fetch("http://localhost:5000/decrypt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              encryptedCardNumber: card.encrypted_card_number,
+              encryptedExpiryDate: card.encrypted_expiry_date,
+              encryptedCvv: card.encrypted_cvv,
+            }),
+          });
+
+          const decryptedCard = await decryptResponse.json();
+          if (decryptResponse.ok) {
+            return {
+              decrypted_card_number: decryptedCard.decrypted_card_number,
+              decrypted_expiry_date: decryptedCard.decrypted_expiry_date,
+              decrypted_cvv: decryptedCard.decrypted_cvv,
+            };
+          } else {
+            throw new Error("Failed to decrypt card data.");
+          }
+        })
+      );
+      setDecryptedCards(decryptedData);
+    } catch (error) {
+      console.error("Error decrypting stored cards:", error);
+      setError("An error occurred while decrypting cards.");
+    }
+  };
+
   useEffect(() => {
     fetchStoredCards();
   }, [userId]);
+  
+  useEffect(() => {
+    if (storedCards.length > 0) decryptStoredCards();
+  }, [storedCards]);
 
   return (
     <div style={{ maxWidth: '400px', margin: 'auto' }}>
@@ -89,6 +139,8 @@ function CreditCardForm() {
           <input type="password" value={cvv} onChange={(e) => setCvv(e.target.value)} maxLength="3" required />
         </div>
         <button type="submit">Submit</button>
+        <button type="button" onClick={fetchStoredCards}>Fetch Stored Cards</button>
+        <button type="button" onClick={decryptStoredCards}>Decrypted Cards</button>
       </form>
 
       {encryptedData && (
@@ -102,16 +154,39 @@ function CreditCardForm() {
 
       {error && <div className='error'>{error}</div>}
 
-      <h3>Stored Cards</h3>
-      <ul>
-        {storedCards.map((card, index) => (
-          <li key={index}>
-            <p>Card Number: {card.encrypted_card_number.ciphertext}</p>
-            <p>Expiry Date: {card.encrypted_expiry_date.ciphertext}</p>
-            <p>CVV: {card.encrypted_cvv.ciphertext}</p>
-          </li>
-        ))}
-      </ul>
+      <div>
+        <h2>My Cards</h2>
+        {storedCards.length > 0 ? (
+          <ul>
+            {storedCards.map((card, index) => (
+              <li key={index}>
+                <p><strong>Card Number:</strong> {card.encrypted_card_number.ciphertext}</p>
+                <p><strong>Expiry:</strong> {card.encrypted_expiry_date.ciphertext}</p>
+                <p><strong>CVC:</strong> {card.encrypted_cvv.ciphertext}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No card details available.</p>
+        )}
+      </div>
+
+      <div>
+        <h2>Decrypted Cards</h2>
+        {decryptedCards.length > 0 ? (
+          <ul>
+            {decryptedCards.map((card, index) => (
+              <li key={index}>
+                <p><strong>Card Number:</strong> {card.decrypted_card_number}</p>
+                <p><strong>Expiry:</strong> {card.decrypted_expiry_date}</p>
+                <p><strong>CVC:</strong> {card.decrypted_cvv}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No decrypted card details available.</p>
+        )}
+      </div>
     </div>
   );
 }
