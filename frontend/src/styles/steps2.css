@@ -1,0 +1,116 @@
+.steps2-container1 {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Center content horizontally */
+  align-items: flex-start; /* Align content vertically to the top */
+  flex-direction: column;
+  padding-top: 50px;
+  left: 10%;
+  position: relative;
+}
+
+.steps2-max-width {
+  width: 80%; /* Adjust width to create some space from the sides */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center; /* Center everything within this container */
+  gap: 50px; /* Add space between text and steps */
+}
+
+.steps2-container2 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  flex-grow: 1;
+}
+
+.steps2-section-header {
+  gap: var(--dl-space-space-oneandhalfunits);
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.steps2-container3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns for the steps */
+  grid-gap: 30px; /* Gap between the columns */
+  margin-top: 20px;
+  width: 100%;
+}
+
+.steps2-container4,
+.steps2-container5,
+.steps2-container6,
+.steps2-container7 {
+  background-color: #6a4c9c; /* Default purple color */
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Let the height adjust based on the content */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Remove fixed height */
+  min-height: 150px; /* Ensure a minimum height for the cards */
+}
+
+.steps2-container5 {
+  background-color: #7b4f98; /* Medium Purple */
+}
+
+.steps2-container6 {
+  background-color: #8c58a1; /* Lighter Purple */
+}
+
+.steps2-container7 {
+  background-color: #9e62b2; /* Light Purple */
+}
+
+/* Align the step number inside each card */
+.steps2-text15, .steps2-text18, .steps2-text21, .steps2-text24 {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Align the description text inside each card */
+.steps2-text14, .steps2-text17, .steps2-text20, .steps2-text23 {
+  text-align: left;
+  padding-top: 50px;
+  padding-left: 10px;
+  font-size: 14px;
+}
+
+/* Hover effect to lift the cards slightly */
+.steps2-container4:hover, .steps2-container5:hover, .steps2-container6:hover, .steps2-container7:hover {
+  transform: translateY(-10px);
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile responsive layout */
+@media (max-width: 991px) {
+  .steps2-max-width {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .steps2-container3 {
+    grid-template-columns: 1fr; /* Stack the cards in a single column on smaller screens */
+  }
+
+  .steps2-container4, .steps2-container5, .steps2-container6, .steps2-container7 {
+    width: 90%;
+  }
+}
+
+@media (max-width: 479px) {
+  .steps2-container4, .steps2-container5, .steps2-container6, .steps2-container7 {
+    width: 95%;
+  }
+}

@@ -1,40 +1,98 @@
-.landing{
-    height: 100vh;
+/* Landing page container */
+.landing {
+    background-color: black;
+    color: white;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #11e8ef, #6b9005);    
+    justify-content: center;
+    font-family: Arial, sans-serif;
+}
 
-}
-.main_heading{
-    font-size: 80px;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    color: white;
-    }
-.para{
-    font-size: 20px;
-    color: white;
-
-}
-.buttons_landing{
-    margin-top: 100px;
-}
-.buttons_landing{
+/* Navbar styling */
+.navbar {
+    width: 100%;
+    background-color: black; /* Black background for navbar */
     display: flex;
-    gap: 40px;
+    justify-content: space-between; /* Space items evenly between left and right */
+    align-items: center;
+    padding: 15px 50px; /* Add padding for spacing */
+    position: fixed;
+    top: 0;
+    z-index: 100; /* Ensure navbar stays on top */
 }
-.login_button, .signup_button{
-    width: 160px;
-    height: 50px;
-    font-size: 20px;
-    background-color: transparent;
-    color: rgba(255, 255, 255, 0.767);
-    box-shadow: 5px 5px 10px 0px rgba(255, 255, 255, 0.273);
+
+.navbar_logo {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: bold;
     cursor: pointer;
-    border-color: white;
 }
-.login_button:active, .signup_button:active{
-    box-shadow: inset 0.5px 0.5px 10px 0px rgba(255, 255, 255, 0.227);
-    transform: scale(0.96);
+
+.navbar_links {
+    list-style: none;
+    display: flex;
+    gap: 25px; /* Increased gap for better spacing */
+    position: relative;
+    left: -5%;
+}
+
+.navbar_links li {
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.navbar_links li:hover {
+    color: #ff7f50;
+}
+
+/* Main heading and paragraph */
+.main_heading {
+    font-size: 2.5rem;
+    color: #ffffff;
+    margin-top: 120px; /* Adjusted margin to avoid overlap with navbar */
+    text-align: center;
+}
+
+.para {
+    font-size: 1.2rem;
+    color: #b3b3b3;
+    margin-bottom: 30px;
+    text-align: center;
+    max-width: 80%;
+}
+
+/* Buttons */
+.buttons_landing {
+    display: flex;
+    gap: 15px;
+}
+
+.login_button,
+.signup_button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: white;
+    border: 2px solid #ffffff;
+    background-color: transparent;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border-radius: 5px;
+}
+
+.login_button:hover {
+    background-color: #ffffff;
+    color: black;
+}
+
+.signup_button {
+    border-color: #ff7f50;
+}
+
+.signup_button:hover {
+    background-color: #ff7f50;
+    color: black;
 }
