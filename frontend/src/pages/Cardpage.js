@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../UserContext';
+import '../styles/cardpage.css';
 
 function CreditCardForm() {
   const { userId } = useContext(UserContext);
@@ -13,8 +14,6 @@ function CreditCardForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Check if card number already exists in decrypted cards
     const cardExists = decryptedCards.some(
       (card) => card.decrypted_card_number === cardNumber
     );
@@ -30,7 +29,6 @@ function CreditCardForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cardNumber, expiryDate, cvv }),
       });
-
       const encryptData = await encryptResponse.json();
       if (encryptResponse.ok) {
         const storeResponse = await fetch("http://localhost:5000/store-encrypted", {
@@ -43,11 +41,10 @@ function CreditCardForm() {
             encrypted_cvv: encryptData.encrypted_cvv,
           }),
         });
-
         if (storeResponse.ok) {
           setEncryptedData(encryptData);
           setError("");
-          fetchStoredCards(); // Refresh the list of stored cards
+          fetchStoredCards();
         } else {
           const storeData = await storeResponse.json();
           setError(storeData.error || "Failed to store encrypted data");
@@ -68,7 +65,6 @@ function CreditCardForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
       });
-
       const cardsData = await retrieveResponse.json();
       if (retrieveResponse.ok) {
         setStoredCards(cardsData);
@@ -94,7 +90,6 @@ function CreditCardForm() {
               encryptedCvv: card.encrypted_cvv,
             }),
           });
-
           const decryptedCard = await decryptResponse.json();
           if (decryptResponse.ok) {
             return {
@@ -117,32 +112,107 @@ function CreditCardForm() {
   useEffect(() => {
     fetchStoredCards();
   }, [userId]);
-  
+
   useEffect(() => {
     if (storedCards.length > 0) decryptStoredCards();
   }, [storedCards]);
 
-  return (
-    <div style={{ maxWidth: '400px', margin: 'auto' }}>
-      <h2>Enter Card Details</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Card Number:</label>
-          <input type="text" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} maxLength="16" required />
-        </div>
-        <div>
-          <label>Expiry Date (MM/YY):</label>
-          <input type="text" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} maxLength="5" required />
-        </div>
-        <div>
-          <label>CVV:</label>
-          <input type="password" value={cvv} onChange={(e) => setCvv(e.target.value)} maxLength="3" required />
-        </div>
-        <button type="submit">Submit</button>
-        <button type="button" onClick={fetchStoredCards}>Fetch Stored Cards</button>
-        <button type="button" onClick={decryptStoredCards}>Decrypted Cards</button>
-      </form>
+  const handleExpiryChange = (e) => {
+    let value = e.target.value;
 
+    // Remove any non-digit characters except "/"
+    value = value.replace(/[^0-9/]/g, '');
+
+    // Automatically add a slash after the first two digits (month)
+    if (value.length === 2 && !value.includes('/')) {
+      value = value.slice(0, 2) + '/' + value.slice(2);
+    }
+
+    // Limit length to 5 characters
+    if (value.length > 5) {
+      return;
+    }
+
+    setExpiryDate(value);
+  };
+
+  // Function to validate the expiry date
+  const isValidExpiryDate = (value) => {
+    const regex = /^(0[1-9]|1[0-2])\/\d{2}$/; // Format MM/YY
+    return regex.test(value);
+  };
+
+  const handleCardNumberChange = (e) => {
+    let value = e.target.value;
+
+    // Remove all non-digit characters
+    value = value.replace(/\D/g, '');
+
+    // Automatically add a space after every 4 digits
+    value = value.replace(/(.{4})/g, '$1 ').trim();
+
+    // Limit length to 19 characters (16 digits + 3 spaces)
+    if (value.length > 19) {
+      return;
+    }
+
+    setCardNumber(value);
+  };
+  return (
+    <div className="card-form-container">
+      <h2>Card Details</h2>
+      {/* <h2>Enter Card Details</h2> */}
+      <form onSubmit={handleSubmit} className="card-form">
+        <div className="card-input-container">
+          <label>Card Number:</label>
+          <input
+            type="text"
+            placeholder="1234 5678 1234 5678"
+            value={cardNumber}
+            onChange={handleCardNumberChange}
+            maxLength="19"
+            required
+          />
+        </div>
+        <div className="card-row">
+          <div className="card-input-container">
+            <label>Expiry Date (MM/YY):</label>
+            <input
+              type="text"
+              placeholder="MM/YY"
+              value={expiryDate}
+              onChange={handleExpiryChange}
+              maxLength="5"
+              required
+              style={{
+                borderColor: expiryDate && !isValidExpiryDate(expiryDate) ? 'red' : '',
+              }}
+            />
+            {!isValidExpiryDate(expiryDate) && expiryDate.length === 5 && (
+              <span style={{ color: 'red', fontSize: '12px' }}>
+                Invalid expiry date
+              </span>
+            )}
+          </div>
+          <div className="card-input-container">
+            <label>CVV:</label>
+            <input
+              type="password"
+              placeholder="123"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value)}
+              maxLength="3"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="meow">
+          <button type="submit">Submit</button>
+          <button type="button" onClick={fetchStoredCards}>Fetch Stored Cards</button>
+          <button type="button" onClick={decryptStoredCards}>Decrypt Cards</button>
+        </div>
+</form>
       {encryptedData && (
         <div>
           <h3>Encrypted Data</h3>
@@ -152,14 +222,14 @@ function CreditCardForm() {
         </div>
       )}
 
-      {error && <div className='error'>{error}</div>}
-
-      <div>
+      {error && <div className="error">{error}</div>}
+    <div className='card-section-container'>
+      <div className='mycards-container'>
         <h2>My Cards</h2>
         {storedCards.length > 0 ? (
           <ul>
             {storedCards.map((card, index) => (
-              <li key={index}>
+              <li key={index} clas>
                 <p><strong>Card Number:</strong> {card.encrypted_card_number.ciphertext}</p>
                 <p><strong>Expiry:</strong> {card.encrypted_expiry_date.ciphertext}</p>
                 <p><strong>CVC:</strong> {card.encrypted_cvv.ciphertext}</p>
@@ -170,8 +240,8 @@ function CreditCardForm() {
           <p>No card details available.</p>
         )}
       </div>
-
-      <div>
+      
+      <div className='decycard-container'>
         <h2>Decrypted Cards</h2>
         {decryptedCards.length > 0 ? (
           <ul>
@@ -187,6 +257,10 @@ function CreditCardForm() {
           <p>No decrypted card details available.</p>
         )}
       </div>
+      </div>
+
+    
+
     </div>
   );
 }

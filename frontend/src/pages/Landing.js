@@ -20,8 +20,6 @@ const Navbar = () => {
 
 const Landing = () => {
 
-
-  
   const navigate = useNavigate()
   return (
     <div className="landing">

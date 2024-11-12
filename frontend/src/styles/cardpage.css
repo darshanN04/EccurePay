@@ -1,0 +1,200 @@
+/* General body styling */
+body {
+    background-color: #000;
+    color: #f1f1f1;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Centered container for the card form */
+  .card-form-container {
+    max-width: 500px;
+    margin: auto;
+    padding-top: 40px;
+    text-align: center;
+    
+  }
+  
+  /* Card form styling */
+/* Main card form styling with red glow shadow */
+.card-form {
+    position: relative;
+    padding: 50px 25px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    border: 2px solid rgba(90, 88, 88, 0.3);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 0, 0, 0.6); /* Red glow shadow */
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #f1f1f1;
+    margin-top: 20px;
+  }
+  
+  
+  /* Box styling for each input container */
+  .card-input-container {
+    margin: 15px 0;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    text-align: left;
+  }
+  
+  /* Input styling */
+  .card-input-container input {
+    width: 75%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background-color: rgba(61, 61, 61, 0.8);
+    color: #fff;
+  }
+  
+  /* Row styling for inputs */
+  .card-row {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Buttons container */
+ /* Button container with larger buttons */
+.meow {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  
+  /* Button styling with pink shade and hover effect */
+  .meow button {
+    padding: 12px 20px; /* Increased size for larger buttons */
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #f04545; /* Pink shade */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Hover effect to change color to cream */
+  .meow button:hover {
+    background-color: #ffdab9; /* Cream shade */
+    color: #333; /* Darker text color for contrast */
+    transform: translateY(-2px); /* Slight lift effect */
+  }
+  
+  /* Active effect when the button is clicked */
+  .meow button:active {
+    background-color: #ffe4c4; /* Slightly darker cream */
+    color: #222;
+    transform: translateY(0); /* Reset lift effect */
+  }
+  
+  
+  /* Card display container styling */
+/* Styling for "My Cards" and "Decrypted Cards" containers */
+.mycards-container,
+.decycard-container {
+  background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background */
+  border-radius: 12px; /* Rounded corners */
+  border: 2px solid rgba(255, 255, 255, 0.3); /* Subtle border */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6); /* Shadow for a box effect */
+  padding: 20px; /* Inner padding for content spacing */
+  width: 80%; /* Smaller width for centered alignment */
+  max-width: 500px;
+  margin: 20px auto; /* Center alignment */
+  text-align: left;
+}
+
+/* Header styling for card sections */
+.mycards-container h2,
+.decycard-container h2 {
+  font-size: 18px;
+  color: #f1f1f1;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 5px;
+  text-align: center;
+}
+
+/* List and list item styling */
+.mycards-container ul,
+.decycard-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.mycards-container li,
+.decycard-container li {
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.3); /* Light black background */
+  border-radius: 8px; /* Rounded corners for list items */
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mycards-container li p,
+.decycard-container li p {
+  margin: 0;
+  color: #ddd;
+  font-size: 14px;
+}
+
+/* Box styling for each card item */
+.mycards-container li,
+.decycard-container li {
+  padding: 10px;
+  background-color: rgba(100, 96, 96, 0.24); /* Darker background for each card item */
+  border-radius: 8px; /* Smooth rounded corners */
+  margin-bottom: 10px;
+  box-shadow: 3px 3px 7px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Wrapper for card sections */
+.card-section-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex;
+    gap: 20px; /* Space between the two boxes */
+    width: 1000px;
+    position: absolute;
+    left: 260px;
+    margin: 0 auto;
+    padding-top: 20px;
+  }
+  
+  /* Adjusting individual containers for side-by-side display */
+  .mycards-container,
+  .decycard-container {
+    flex: 1;
+    min-width: 45%; /* Ensure both boxes have enough width */
+  }
+  
+  /* Individual box styling (applies to both containers) */
+  .mycards-container,
+  .decycard-container {
+    background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background */
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    text-align: left;
+  }
+  
+
+  
+  /* Error message styling */
+  .error {
+    color: #ff4d4d;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
